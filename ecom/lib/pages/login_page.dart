@@ -1,6 +1,10 @@
 import 'package:ecom/core/constains/my_colors.dart';
+import 'package:ecom/providers/auth_provider.dart';
+import 'package:ecom/routers/route_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({
@@ -10,18 +14,19 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+        resizeToAvoidBottomInset: false,
         body: SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        child: Column(
-          children: [
-            _LoginSignUpWithAvatar(),
-            _LogoPortion(),
-            _LoginSignUpForm()
-          ],
-        ),
-      ),
-    ));
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            child: Column(
+              children: [
+                _LoginSignUpWithAvatar(),
+                _LogoPortion(),
+                _LoginSignUpForm(),
+              ],
+            ),
+          ),
+        ));
   }
 }
 
@@ -32,6 +37,8 @@ class _LoginSignUpForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController _emailTextController = TextEditingController();
+    TextEditingController _passwordTextController = TextEditingController();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -41,6 +48,7 @@ class _LoginSignUpForm extends StatelessWidget {
         ),
         SizedBox(height: 5.h),
         TextField(
+          controller: _emailTextController,
           decoration: InputDecoration(
             hintText: "Example: yourmail@gmail.com",
             fillColor: MyColors.inputColor,
@@ -69,6 +77,7 @@ class _LoginSignUpForm extends StatelessWidget {
         ),
         SizedBox(height: 5.h),
         TextField(
+          controller: _passwordTextController,
           obscureText: true,
           decoration: InputDecoration(
             hintText: "Your Password",
@@ -94,19 +103,49 @@ class _LoginSignUpForm extends StatelessWidget {
         SizedBox(
           height: 24.h,
         ),
+        Consumer<AuthProvider>(
+          builder: (context, authprovider, _) => authprovider.hasError
+              ? Center(
+                  child: Text(
+                    "${authprovider.errorMessage}",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                )
+              : Container(),
+        ),
+        SizedBox(
+          height: 24.h,
+        ),
         SizedBox(
           width: double.infinity,
           height: 56.h,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () async {
+              String email = _emailTextController.text;
+              String password = _passwordTextController.text;
+              print("Email: $email, password: $password");
+              bool isLoggedinSuccess =
+                  await Provider.of<AuthProvider>(context, listen: false)
+                      .login(email, password);
+              if (isLoggedinSuccess) {
+                context.goNamed(RouteName.HOME_PAGE);
+              }
+            },
             style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: MyColors.primaryColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(40.r))),
-            child: Text(
-              "Login",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            child: Consumer<AuthProvider>(
+              builder: (context, authprovider, _) => authprovider.isLoading
+                  ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                  : Text(
+                      "Login",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    ),
             ),
           ),
         ),

@@ -1,5 +1,8 @@
+import 'package:ecom/providers/auth_provider.dart';
+import 'package:ecom/routers/route_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import 'pages/login_page.dart';
 
@@ -12,10 +15,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: Size(375, 812),
-      builder: (contex, child) => const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Material App',
-        home: LoginPage(),
+      builder: (contex, child) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (contex) => AuthProvider(),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: routeManagement.routeConfig,
+          debugShowCheckedModeBanner: false,
+          title: 'Material App',
+        ),
       ),
     );
   }
